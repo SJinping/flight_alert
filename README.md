@@ -6,6 +6,8 @@
 
 仅查询牛马专线（价格低、周四或周五出发）。
 
+demo网址：https://11e6eabf.flight-price-alert.pages.dev/
+
 
 ## 功能特点
 
