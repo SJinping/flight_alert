@@ -113,7 +113,7 @@ const FlightPriceTable = () => {
   return (
     <Box sx={{ width: '100%', padding: 2 }}>
       <Typography variant="h4" gutterBottom>
-        牛马特种兵专线
+        深圳牛马特种兵旅游专线
       </Typography>
 
       <Tabs value={viewType} onChange={(e, newValue) => setViewType(newValue)} sx={{ mb: 2 }}>
