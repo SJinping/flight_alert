@@ -30,7 +30,6 @@ const FlightPriceTable = () => {
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [cities, setCities] = useState([]);
   const [viewType, setViewType] = useState('table'); // 'table' 或 'calendar'
-  const [selectedDate, setSelectedDate] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dateFlights, setDateFlights] = useState([]);
 
@@ -98,7 +97,6 @@ const FlightPriceTable = () => {
 
   // 处理日历日期点击
   const handleDateClick = (date) => {
-    const formattedDate = dayjs(date).format('YYYYMMDD');
     const flightsOnDate = flights.filter(f => f.depDate === dayjs(date).format('YYYY-MM-DD'));
     if (flightsOnDate.length > 0) {
       setDateFlights(flightsOnDate);
