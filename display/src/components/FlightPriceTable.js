@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Box, 
   Paper, 
@@ -46,7 +46,7 @@ const FlightPriceTable = () => {
   const REACT_APP_AMAP_KEY = process.env.REACT_APP_AMAP_KEY
   
   // 添加获取城市坐标的函数
-  const getCityCoordinate = async (cityName) => {
+  const getCityCoordinate = useCallback(async (cityName) => {
     if (cityCoordinates[cityName]) {
       return cityCoordinates[cityName];
     }
@@ -70,16 +70,14 @@ const FlightPriceTable = () => {
       console.error('获取城市坐标失败:', error);
     }
     return null;
-  };
+  }, [REACT_APP_AMAP_KEY, cityCoordinates]);
 
-  // 修改获取当前有效航线的函数
-  const fetchActiveRoutes = async () => {
-  
+  // 使用 useCallback 包装 fetchActiveRoutes
+  const fetchActiveRoutes = useCallback(async () => {
     setLoading(true);
     const currentDate = dayjs().format('YYYY-MM-DD');
     const activeFlights = flights.filter(f => f.depDate >= currentDate);
     
-    // 获取所有需要的城市坐标
     const cities = ['深圳', ...new Set(activeFlights.map(f => f.city))];
     await Promise.all(cities.map(city => getCityCoordinate(city)));
     
@@ -91,14 +89,14 @@ const FlightPriceTable = () => {
     
     setActiveRoutes(routes);
     setLoading(false);
-  };
+  }, [flights, getCityCoordinate]); // 添加依赖项
 
   // 添加 useEffect 来在视图类型改变时获取路线
   useEffect(() => {
     if (viewType === 'map') {
       fetchActiveRoutes();
     }
-  }, [viewType]);
+  }, [viewType, fetchActiveRoutes]);
 
   useEffect(() => {
     // 在实际应用中，这里应该是从后端API获取数据
