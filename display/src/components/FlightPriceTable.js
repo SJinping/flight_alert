@@ -335,7 +335,6 @@ const [mapError, setMapError] = useState(null);
         // 获取该城市的最新航班信息
         const cityFlights = flights.filter(f => f.city === city)
           .sort((a, b) => b.timestamp - a.timestamp);
-        const latestFlight = cityFlights[0];
         
         return (
           <Marker
@@ -367,31 +366,44 @@ const [mapError, setMapError] = useState(null);
       const toCoord = cityCoordinates[route.to];
       if (!fromCoord || !toCoord) return null;
       
-      // 计算弧线控制点
-      const midPoint = [
-        (fromCoord[0] + toCoord[0]) / 2,
-        (fromCoord[1] + toCoord[1]) / 2
-      ];
-      // 添加弧度
+      // 计算贝塞尔曲线的控制点
+      const dx = toCoord[0] - fromCoord[0];
+      const dy = toCoord[1] - fromCoord[1];
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // 控制点的高度随距离变化
+      const heightFactor = distance * 0.2;
       const controlPoint = [
-        midPoint[0],
-        midPoint[1] + Math.abs(fromCoord[1] - toCoord[1]) * 0.2
+        (fromCoord[0] + toCoord[0]) / 2,  // 控制点 x 坐标
+        Math.max(fromCoord[1], toCoord[1]) + heightFactor  // 控制点 y 坐标
       ];
+    
+      // 生成更多的贝塞尔曲线点以使曲线更平滑
+      const points = [];
+      for (let t = 0; t <= 1; t += 0.05) {
+        const x = Math.pow(1 - t, 2) * fromCoord[0] + 
+                  2 * (1 - t) * t * controlPoint[0] + 
+                  Math.pow(t, 2) * toCoord[0];
+        const y = Math.pow(1 - t, 2) * fromCoord[1] + 
+                  2 * (1 - t) * t * controlPoint[1] + 
+                  Math.pow(t, 2) * toCoord[1];
+        points.push([x, y]);
+      }
       
       return (
         <Polyline
           key={index}
-          path={[fromCoord, controlPoint, toCoord]} // 使用三个点创建弧线
+          path={points}
           strokeColor="#1976d2"
           strokeWeight={3}
           strokeStyle="solid"
           showDir={true}
-          geodesic={true}
+          geodesic={false}
           lineJoin="round"
           lineCap="round"
           borderWeight={1}
           isOutline={true}
-          outlineColor="#ffffff"
+          outlineColor="rgba(255, 255, 255, 0.6)"
           extData={route}
           events={{
             click: (e) => {
