@@ -21,17 +21,84 @@ import { DataGrid } from '@mui/x-data-grid';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+// import { Amap, Polyline, Marker } from '@amap/amap-react';
+import { Map, Marker, Polyline } from '@uiw/react-amap';
 import dayjs from 'dayjs';
 
+// 在组件顶部添加安全配置
+window._AMapSecurityConfig = {
+  securityJsCode: process.env.REACT_APP_AMAP_SECURITY_CODE
+};
+
 const FlightPriceTable = () => {
+  // 将所有 useState 声明移到组件顶部
   const [flights, setFlights] = useState([]);
   const [filteredFlights, setFilteredFlights] = useState([]);
   const [selectedCity, setSelectedCity] = useState('');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [cities, setCities] = useState([]);
-  const [viewType, setViewType] = useState('table'); // 'table' 或 'calendar'
+  const [viewType, setViewType] = useState('table');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dateFlights, setDateFlights] = useState([]);
+  const [cityCoordinates, setCityCoordinates] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [activeRoutes, setActiveRoutes] = useState([]);
+  const REACT_APP_AMAP_KEY = process.env.REACT_APP_AMAP_KEY
+  
+  // 添加获取城市坐标的函数
+  const getCityCoordinate = async (cityName) => {
+    if (cityCoordinates[cityName]) {
+      return cityCoordinates[cityName];
+    }
+
+    try {
+      const response = await fetch(
+        `https://restapi.amap.com/v3/geocode/geo?address=${cityName}&key=${REACT_APP_AMAP_KEY}&output=JSON`
+      );
+      const data = await response.json();
+      
+      if (data.status === '1' && data.geocodes.length > 0) {
+        const [lng, lat] = data.geocodes[0].location.split(',');
+        const coordinates = [Number(lng), Number(lat)];
+        setCityCoordinates(prev => ({
+          ...prev,
+          [cityName]: coordinates
+        }));
+        return coordinates;
+      }
+    } catch (error) {
+      console.error('获取城市坐标失败:', error);
+    }
+    return null;
+  };
+
+  // 修改获取当前有效航线的函数
+  const fetchActiveRoutes = async () => {
+  
+    setLoading(true);
+    const currentDate = dayjs().format('YYYY-MM-DD');
+    const activeFlights = flights.filter(f => f.depDate >= currentDate);
+    
+    // 获取所有需要的城市坐标
+    const cities = ['深圳', ...new Set(activeFlights.map(f => f.city))];
+    await Promise.all(cities.map(city => getCityCoordinate(city)));
+    
+    const routes = activeFlights.map(f => ({
+      from: '深圳',
+      to: f.city,
+      price: f.price
+    }));
+    
+    setActiveRoutes(routes);
+    setLoading(false);
+  };
+
+  // 添加 useEffect 来在视图类型改变时获取路线
+  useEffect(() => {
+    if (viewType === 'map') {
+      fetchActiveRoutes();
+    }
+  }, [viewType]);
 
   useEffect(() => {
     // 在实际应用中，这里应该是从后端API获取数据
@@ -110,16 +177,27 @@ const FlightPriceTable = () => {
     return flights.some(f => f.depDate === formattedDate);
   };
 
+const [mapReady, setMapReady] = useState(false);
+const [mapError, setMapError] = useState(null);
+
   return (
     <Box sx={{ width: '100%', padding: 2 }}>
       <Typography variant="h4" gutterBottom>
         深圳牛马特种兵旅游专线
       </Typography>
 
-      <Tabs value={viewType} onChange={(e, newValue) => setViewType(newValue)} sx={{ mb: 2 }}>
-        <Tab value="table" label="表格视图" />
-        <Tab value="calendar" label="日历视图" />
-      </Tabs>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs 
+          value={viewType} 
+          onChange={(_event, newValue) => setViewType(newValue)} 
+          aria-label="view tabs"
+          sx={{ mb: 2 }}
+        >
+          <Tab value="table" label="表格视图" id="tab-table" />
+          <Tab value="calendar" label="日历视图" id="tab-calendar" />
+          <Tab value="map" label="地图视图" id="tab-map" />
+        </Tabs>
+      </Box>
       
       {viewType === 'table' ? (
         <>
@@ -175,7 +253,7 @@ const FlightPriceTable = () => {
         />
       </Paper>
       </>
-      ) : (
+      ) : viewType === 'calendar' ? (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Paper 
             sx={{ 
@@ -216,6 +294,137 @@ const FlightPriceTable = () => {
             />
           </Paper>
         </LocalizationProvider>
+      ) : (
+        <Paper sx={{ height: 600, width: '100%', overflow: 'hidden', position: 'relative' }}>
+    {(loading || !mapReady) && (
+      <Box sx={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 1000
+      }}>
+        {loading ? '加载中...' : '地图初始化中...'}
+      </Box>
+    )}
+    
+    {mapError && (
+      <Box sx={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        color: 'error.main',
+        zIndex: 1000
+      }}>
+        地图加载失败：{mapError}
+      </Box>
+    )}
+
+    {REACT_APP_AMAP_KEY && !mapError && (
+      <Map 
+      amapkey={REACT_APP_AMAP_KEY}
+      zoom={5}
+      center={[114.085947, 22.547]}
+      mapStyle="amap://styles/whitesmoke"
+      onComplete={() => setMapReady(true)}
+      onError={(error) => setMapError(error.message)}
+      >
+      {mapReady && Object.entries(cityCoordinates).map(([city, coordinates]) => (
+      <Marker
+        key={city}
+        position={coordinates}
+        label={{
+          content: city,
+          direction: 'top'
+        }}
+      />
+    ))}
+    
+    {mapReady && activeRoutes.map((route, index) => {
+      const fromCoord = cityCoordinates['深圳'];
+      const toCoord = cityCoordinates[route.to];
+      if (!fromCoord || !toCoord) return null;
+      
+      // 计算弧线控制点
+      const midPoint = [
+        (fromCoord[0] + toCoord[0]) / 2,
+        (fromCoord[1] + toCoord[1]) / 2
+      ];
+      // 添加弧度
+      const controlPoint = [
+        midPoint[0],
+        midPoint[1] + Math.abs(fromCoord[1] - toCoord[1]) * 0.2
+      ];
+      
+      return (
+        <Polyline
+          key={index}
+          path={[fromCoord, controlPoint, toCoord]} // 使用三个点创建弧线
+          strokeColor="#1976d2"
+          strokeWeight={3}
+          strokeStyle="solid"
+          showDir={true}
+          geodesic={true}
+          lineJoin="round"
+          lineCap="round"
+          borderWeight={1}
+          isOutline={true}
+          outlineColor="#ffffff"
+          extData={route}
+          events={{
+            click: (e) => {
+              const routeData = e.target.getExtData();
+              alert(`${routeData.from} -> ${routeData.to}\n价格：￥${routeData.price}`);
+            }
+          }}
+        />
+      );
+    })}
+    </Map>
+
+    // 使用Amap会报错
+      // <Amap 
+      //   zoom={5}
+      //   center={[114.085947, 22.547]}
+      //   mapStyle="amap://styles/whitesmoke"
+      //   apiKey={REACT_APP_AMAP_KEY}
+      //   version="2.0"
+      //   onComplete={() => setMapReady(true)}
+      //   onError={(error) => setMapError(error.message)}
+      // >
+
+      //   {mapReady && Object.entries(cityCoordinates).map(([city, coordinates]) => (
+      //     <Marker
+      //       key={city}
+      //       position={coordinates}
+      //       label={{ content: city, direction: 'top' }}
+      //     />
+      //   ))}
+        
+      //   {mapReady && activeRoutes.map((route, index) => {
+      //     const fromCoord = cityCoordinates['深圳'];
+      //     const toCoord = cityCoordinates[route.to];
+      //     if (!fromCoord || !toCoord) return null;
+          
+      //     return (
+      //       <Polyline
+      //         key={index}
+      //         path={[fromCoord, toCoord]}
+      //         strokeColor="#1976d2"
+      //         strokeWeight={2}
+      //         showDir={true}
+      //         extData={route}
+      //         onClick={(e) => {
+      //           const route = e.target.getExtData();
+      //           alert(`${route.from} -> ${route.to}\n价格：￥${route.price}`);
+      //         }}
+      //       />
+      //     );
+      //   })}
+      // </Amap>
+    )}
+  </Paper>
       )}
 
 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md">
