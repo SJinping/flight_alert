@@ -22,7 +22,7 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 // import { Amap, Polyline, Marker } from '@amap/amap-react';
-import { Map, Marker, Polyline } from '@uiw/react-amap';
+import { APILoader, Map, Marker, Polyline } from '@uiw/react-amap';
 import dayjs from 'dayjs';
 
 // 在组件顶部添加安全配置
@@ -31,7 +31,9 @@ window._AMapSecurityConfig = {
 };
 
 const FlightPriceTable = () => {
-  // 将所有 useState 声明移到组件顶部
+  const [selectedCityFlights, setSelectedCityFlights] = useState([]);
+  const [cityDialogOpen, setCityDialogOpen] = useState(false);
+  const [selectedCityName, setSelectedCityName] = useState('');
   const [flights, setFlights] = useState([]);
   const [filteredFlights, setFilteredFlights] = useState([]);
   const [selectedCity, setSelectedCity] = useState('');
@@ -319,25 +321,46 @@ const [mapError, setMapError] = useState(null);
       </Box>
     )}
 
+    // 在地图渲染部分，将原来的代码：
     {REACT_APP_AMAP_KEY && !mapError && (
       <Map 
-      amapkey={REACT_APP_AMAP_KEY}
-      zoom={5}
-      center={[114.085947, 22.547]}
-      mapStyle="amap://styles/whitesmoke"
-      onComplete={() => setMapReady(true)}
-      onError={(error) => setMapError(error.message)}
+        amapkey={REACT_APP_AMAP_KEY}
+        zoom={5}
+        center={[114.085947, 22.547]}
+        mapStyle="amap://styles/whitesmoke"
+        onComplete={() => setMapReady(true)}
+        onError={(error) => setMapError(error.message)}
       >
-      {mapReady && Object.entries(cityCoordinates).map(([city, coordinates]) => (
-      <Marker
+      {mapReady && Object.entries(cityCoordinates).map(([city, coordinates]) => {
+        // 获取该城市的最新航班信息
+        const cityFlights = flights.filter(f => f.city === city)
+          .sort((a, b) => b.timestamp - a.timestamp);
+        const latestFlight = cityFlights[0];
+        
+        return (
+          <Marker
         key={city}
         position={coordinates}
         label={{
           content: city,
           direction: 'top'
         }}
+        clickable={true}
+        onClick={() => {
+          const currentDate = dayjs().format('YYYY-MM-DD');
+          const futureFlights = flights
+            .filter(f => f.city === city && f.depDate >= currentDate)
+            .sort((a, b) => a.price - b.price);
+          
+          if (futureFlights.length > 0) {
+            setSelectedCityFlights(futureFlights);
+            setSelectedCityName(city);
+            setCityDialogOpen(true);
+          }
+        }}
       />
-    ))}
+        );
+      })}
     
     {mapReady && activeRoutes.map((route, index) => {
       const fromCoord = cityCoordinates['深圳'];
@@ -380,50 +403,25 @@ const [mapError, setMapError] = useState(null);
       );
     })}
     </Map>
-
-    // 使用Amap会报错
-      // <Amap 
-      //   zoom={5}
-      //   center={[114.085947, 22.547]}
-      //   mapStyle="amap://styles/whitesmoke"
-      //   apiKey={REACT_APP_AMAP_KEY}
-      //   version="2.0"
-      //   onComplete={() => setMapReady(true)}
-      //   onError={(error) => setMapError(error.message)}
-      // >
-
-      //   {mapReady && Object.entries(cityCoordinates).map(([city, coordinates]) => (
-      //     <Marker
-      //       key={city}
-      //       position={coordinates}
-      //       label={{ content: city, direction: 'top' }}
-      //     />
-      //   ))}
-        
-      //   {mapReady && activeRoutes.map((route, index) => {
-      //     const fromCoord = cityCoordinates['深圳'];
-      //     const toCoord = cityCoordinates[route.to];
-      //     if (!fromCoord || !toCoord) return null;
-          
-      //     return (
-      //       <Polyline
-      //         key={index}
-      //         path={[fromCoord, toCoord]}
-      //         strokeColor="#1976d2"
-      //         strokeWeight={2}
-      //         showDir={true}
-      //         extData={route}
-      //         onClick={(e) => {
-      //           const route = e.target.getExtData();
-      //           alert(`${route.from} -> ${route.to}\n价格：￥${route.price}`);
-      //         }}
-      //       />
-      //     );
-      //   })}
-      // </Amap>
     )}
   </Paper>
       )}
+
+<Dialog open={cityDialogOpen} onClose={() => setCityDialogOpen(false)} maxWidth="md">
+        <DialogTitle>{selectedCityName}航班信息</DialogTitle>
+        <DialogContent>
+          <List>
+            {selectedCityFlights.map((flight, index) => (
+              <ListItem key={index}>
+                <ListItemText
+                  primary={`￥${flight.price}`}
+                  secondary={`出发：${flight.depDate} 返回：${flight.retDate}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+      </Dialog>
 
 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md">
         <DialogTitle>航班信息</DialogTitle>
