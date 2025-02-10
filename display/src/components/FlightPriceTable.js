@@ -22,7 +22,7 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 // import { Amap, Polyline, Marker } from '@amap/amap-react';
-import { APILoader, Map, Marker, Polyline } from '@uiw/react-amap';
+import { Map, Marker, Polyline } from '@uiw/react-amap';
 import dayjs from 'dayjs';
 
 // 在组件顶部添加安全配置
@@ -321,7 +321,6 @@ const [mapError, setMapError] = useState(null);
       </Box>
     )}
 
-    // 在地图渲染部分，将原来的代码：
     {REACT_APP_AMAP_KEY && !mapError && (
       <Map 
         amapkey={REACT_APP_AMAP_KEY}
@@ -332,9 +331,6 @@ const [mapError, setMapError] = useState(null);
         onError={(error) => setMapError(error.message)}
       >
       {mapReady && Object.entries(cityCoordinates).map(([city, coordinates]) => {
-        // 获取该城市的最新航班信息
-        const cityFlights = flights.filter(f => f.city === city)
-          .sort((a, b) => b.timestamp - a.timestamp);
         
         return (
           <Marker
