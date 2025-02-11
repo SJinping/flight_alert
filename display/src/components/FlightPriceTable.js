@@ -367,16 +367,20 @@ const [mapError, setMapError] = useState(null);
       const dy = toCoord[1] - fromCoord[1];
       const distance = Math.sqrt(dx * dx + dy * dy);
       
-      // 控制点的高度随距离变化
-      const heightFactor = distance * 0.2;
-      const controlPoint = [
-        (fromCoord[0] + toCoord[0]) / 2,  // 控制点 x 坐标
-        Math.max(fromCoord[1], toCoord[1]) + heightFactor  // 控制点 y 坐标
+      // 调整控制点计算方式
+      const heightFactor = distance * 0.15; // 降低高度系数
+      const midPoint = [
+        (fromCoord[0] + toCoord[0]) / 2,
+        (fromCoord[1] + toCoord[1]) / 2
       ];
-    
-      // 生成更多的贝塞尔曲线点以使曲线更平滑
+      const controlPoint = [
+        midPoint[0], // 控制点 x 坐标保持在中点
+        midPoint[1] + heightFactor // 控制点 y 坐标基于中点向上偏移
+      ];
+  
+      // 生成更密集的贝塞尔曲线点以使曲线更平滑
       const points = [];
-      for (let t = 0; t <= 1; t += 0.05) {
+      for (let t = 0; t <= 1; t += 0.02) { // 减小步长，使曲线更平滑
         const x = Math.pow(1 - t, 2) * fromCoord[0] + 
                   2 * (1 - t) * t * controlPoint[0] + 
                   Math.pow(t, 2) * toCoord[0];

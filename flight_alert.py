@@ -103,14 +103,14 @@ class FlightAlert(object):
                 f"Cannot get the ticket information from {place_to} to {place_from}")
             return False
 
-        def check_and_send_alert(dep_date):
+        def check_and_send_alert(dep_date, days=35):
             weekday = self.get_weekday(dep_date)
             # 只查询周四和周五出发的机票
             if weekday != 4 and weekday != 5:
                 return True
 
             # dep_date拒当前日期大于21天，返回false
-            if (datetime.strptime(dep_date, "%Y%m%d").date() - datetime.now().date()).days > 21:
+            if (datetime.strptime(dep_date, "%Y%m%d").date() - datetime.now().date()).days > days:
                 return True
 
             arr_date = (datetime.strptime(dep_date, "%Y%m%d") + timedelta(days=3)).strftime("%Y%m%d")
@@ -231,7 +231,7 @@ class FlightAlert(object):
 if __name__ == "__main__":
     print(log_file_path)
     logging.basicConfig(filename=log_file_path, level=logging.INFO)
-    iata_code_file = './iata_code.json'
+    iata_code_file = './iata_code_domestic.json'
     price_log_file = './display/public/price_log.txt'
     flight_alert = FlightAlert(price_log_file, iata_code_file, config_path)
     logger = logging.getLogger(flight_alert.__class__.__name__)
