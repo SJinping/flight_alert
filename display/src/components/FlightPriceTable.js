@@ -22,7 +22,7 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 // import { Amap, Polyline, Marker } from '@amap/amap-react';
-import { Map, Marker, Polyline, Text } from '@uiw/react-amap';
+import { Map, Marker, Polyline } from '@uiw/react-amap';
 import dayjs from 'dayjs';
 
 // 在组件顶部添加安全配置
