@@ -22,7 +22,7 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 // import { Amap, Polyline, Marker } from '@amap/amap-react';
-import { Map, Marker, Polyline } from '@uiw/react-amap';
+import { Map, Marker, Polyline, Text } from '@uiw/react-amap';
 import dayjs from 'dayjs';
 
 // 在组件顶部添加安全配置
@@ -164,11 +164,23 @@ const FlightPriceTable = () => {
 
   // 处理日历日期点击
   const handleDateClick = (date) => {
-    const flightsOnDate = flights.filter(f => f.depDate === dayjs(date).format('YYYY-MM-DD'));
-    if (flightsOnDate.length > 0) {
-      setDateFlights(flightsOnDate);
-      setDialogOpen(true);
-    }
+    const flightsOnDate = flights
+    .filter(f => f.depDate === dayjs(date).format('YYYY-MM-DD'))
+    .reduce((acc, flight) => {
+      // 使用城市和往返日期组合作为键
+      const key = `${flight.city}-${flight.depDate}-${flight.retDate}`;
+      if (!acc[key] || acc[key].timestamp < flight.timestamp) {
+        acc[key] = flight;
+      }
+      return acc;
+    }, {});
+
+  const uniqueFlights = Object.values(flightsOnDate);
+  
+  if (uniqueFlights.length > 0) {
+    setDateFlights(uniqueFlights);
+    setDialogOpen(true);
+  }
   };
 
   // 获取有航班的日期
@@ -343,15 +355,26 @@ const [mapError, setMapError] = useState(null);
         clickable={true}
         onClick={() => {
           const currentDate = dayjs().format('YYYY-MM-DD');
-          const futureFlights = flights
-            .filter(f => f.city === city && f.depDate >= currentDate)
-            .sort((a, b) => a.price - b.price);
-          
-          if (futureFlights.length > 0) {
-            setSelectedCityFlights(futureFlights);
-            setSelectedCityName(city);
-            setCityDialogOpen(true);
-          }
+    // 获取未来航班，并按日期组合进行分组
+    const futureFlights = flights
+      .filter(f => f.city === city && f.depDate >= currentDate)
+      .reduce((acc, flight) => {
+        const key = `${flight.depDate}-${flight.retDate}`;
+        if (!acc[key] || acc[key].timestamp < flight.timestamp) {
+          acc[key] = flight;
+        }
+        return acc;
+      }, {});
+    
+    // 转换为数组并按价格排序
+    const uniqueFlights = Object.values(futureFlights)
+      .sort((a, b) => a.price - b.price);
+    
+    if (uniqueFlights.length > 0) {
+      setSelectedCityFlights(uniqueFlights);
+      setSelectedCityName(city);
+      setCityDialogOpen(true);
+    }
         }}
       />
         );
