@@ -107,6 +107,7 @@ const FlightPriceTable = () => {
     fetch('/price_log.txt')
       .then(response => response.text())
       .then(data => {
+        console.log('Raw data length:', data.split('\n').length);
         const parsedFlights = data
           .split('\n')
           .filter(line => line.trim())
@@ -121,6 +122,7 @@ const FlightPriceTable = () => {
               timestamp: Number(timestamp.trim())
             };
           });
+        
         setFlights(parsedFlights);
         setFilteredFlights(parsedFlights);
         
@@ -318,7 +320,7 @@ const [mapError, setMapError] = useState(null);
               .sort((a, b) => a.timestamp - b.timestamp)
               .map(flight => ({
                 ...flight,
-                date: dayjs(flight.timestamp).format('MM-DD HH:mm'),
+                date: dayjs(flight.timestamp*1000).format('MM-DD HH:mm'),
                 isExpired: flight.depDate < currentDate
               }));
     
