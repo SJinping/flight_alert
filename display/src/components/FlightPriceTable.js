@@ -24,6 +24,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 // import { Amap, Polyline, Marker } from '@amap/amap-react';
 import { Map, Marker, Polyline } from '@uiw/react-amap';
 import dayjs from 'dayjs';
+// 在文件顶部添加 recharts 相关导入
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 // 在组件顶部添加安全配置
 window._AMapSecurityConfig = {
@@ -208,6 +210,7 @@ const [mapError, setMapError] = useState(null);
           <Tab value="table" label="表格视图" id="tab-table" />
           <Tab value="calendar" label="日历视图" id="tab-calendar" />
           <Tab value="map" label="地图视图" id="tab-map" />
+          <Tab value="trend" label="价格走势" id="tab-trend" />
         </Tabs>
       </Box>
       
@@ -306,6 +309,100 @@ const [mapError, setMapError] = useState(null);
             />
           </Paper>
         </LocalizationProvider>
+      ) : viewType === 'trend' ? (
+        <Paper sx={{ height: 600, width: '100%', p: 2, overflow: 'auto' }}>
+          {cities.map(city => {
+            const currentDate = dayjs().format('YYYY-MM-DD');
+            const cityFlights = flights
+              .filter(f => f.city === city)
+              .sort((a, b) => a.timestamp - b.timestamp)
+              .map(flight => ({
+                ...flight,
+                date: dayjs(flight.timestamp).format('MM-DD HH:mm'),
+                isExpired: flight.depDate < currentDate
+              }));
+    
+            return (
+              <Box key={city} sx={{ mb: 4 }}>
+                <Typography variant="h6" gutterBottom>
+                  {city}
+                </Typography>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={cityFlights}>
+                    <XAxis 
+                      dataKey="date" 
+                      tick={{ fontSize: 12 }}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis 
+                      domain={['dataMin - 100', 'dataMax + 100']}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        padding: '10px'
+                      }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div style={{
+                              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                              border: '1px solid #ccc',
+                              borderRadius: '4px',
+                              padding: '10px'
+                            }}>
+                              <p style={{ margin: '0 0 5px' }}>{`更新时间: ${data.date}`}</p>
+                              <p style={{ 
+                                margin: '0 0 5px', 
+                                color: data.isExpired ? '#9e9e9e' : '#1976d2' 
+                              }}>{`价格: ￥${data.price}`}</p>
+                              <p style={{ margin: '0 0 5px' }}>{`出发: ${data.depDate}`}</p>
+                              <p style={{ margin: '0' }}>{`返程: ${data.retDate}`}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="price"
+                      stroke="#1976d2"
+                      dot={(props) => {
+                        const { cx, cy, payload } = props;
+                        return (
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r={4}
+                            fill={payload.isExpired ? '#9e9e9e' : '#1976d2'}
+                            stroke={payload.isExpired ? '#9e9e9e' : '#1976d2'}
+                          />
+                        );
+                      }}
+                      activeDot={(props) => {
+                        const { cx, cy, payload } = props;
+                        return (
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r={6}
+                            fill={payload.isExpired ? '#9e9e9e' : '#1976d2'}
+                            stroke={payload.isExpired ? '#9e9e9e' : '#1976d2'}
+                          />
+                        );
+                      }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Box>
+            );
+          })}
+        </Paper>
       ) : (
         <Paper sx={{ height: 600, width: '100%', overflow: 'hidden', position: 'relative' }}>
     {(loading || !mapReady) && (
