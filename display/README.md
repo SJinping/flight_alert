@@ -1,70 +1,54 @@
-# Getting Started with Create React App
+# 深圳牛马特种兵旅游专线
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 功能简介
+这是一个用于监控和展示从深圳出发的特价机票信息的网站。网站提供了四种不同的数据可视化方式：
 
-## Available Scripts
+### 1. 表格视图
+- 展示所有航班信息，包括目的地、出发日期、返程日期、价格和更新时间
+- 支持按城市筛选
+- 支持价格区间筛选
+- 提供直接订票链接（仅限未过期航班）
+- 支持多列排序
 
-In the project directory, you can run:
+### 2. 日历视图
+- 以日历形式展示有航班的日期
+- 点击日期可查看当天所有航班信息
+- 提供城市链接直达订票页面
+- 过期航班会被灰显处理
 
-### `npm start`
+### 3. 地图视图
+- 在地图上展示所有目的地城市
+- 使用曲线展示航线
+- 点击城市标记可查看该城市的所有航班信息
+- 支持订票链接快速跳转
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 4. 价格走势
+- 按城市分组展示机票价格变化趋势
+- 支持鼠标悬停查看详细信息
+- 提供价格点击直达订票功能
+- 过期航班会被灰显处理
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 特色功能
+- 每日价格更新
+- 多维度数据展示
+- 便捷的订票链接
+- 过期航班自动处理
+- 响应式设计，适配不同屏幕尺寸
 
-### `npm test`
+## 技术栈
+- React
+- Material-UI
+- Recharts（图表展示）
+- 高德地图 API（地图展示）
+- Day.js（日期处理）
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 使用说明
+1. 在顶部标签页切换不同的视图模式
+2. 使用筛选功能快速定位目标航班
+3. 点击"订票"链接直接跳转到对应航班的订票页面
+4. 查看价格走势，把握最佳购票时机
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 注意事项
+- 只显示深圳出发的航班信息
+- 过期航班的订票链接会被自动隐藏
+- 价格每日只更新一次，请以实际订票页面为准，如果没有对应的价格就是过期了
