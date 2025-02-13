@@ -39,10 +39,12 @@ class FlightAlert(object):
         with open(price_log_file, 'r') as f:
             lines = f.readlines()
             for line in lines:
-                des, dep_date, arr_date, price, update_time = line.strip().split(',')
-                update_time = int(update_time)
-                price_dict = {dep_date: {arr_date: price}}
-                self.price_info[des] = price_dict
+                parts = line.strip().split(',')
+                if len(parts) >= 6:  # 确保有足够的列
+                    des, dep_date, arr_date, price, update_time, iata_code = parts
+                    update_time = int(update_time)
+                    price_dict = {dep_date: {arr_date: price}}
+                    self.price_info[des] = price_dict
 
     def get_config(self, config_path, iata_code_file):
         with open(config_path, 'r') as f:
@@ -163,7 +165,6 @@ class FlightAlert(object):
             self.update_price_info[place_to][dep_date][arr_date] = price
 
     def save_low_price(self):
-        # 定义update_time, 赋值当前时间戳
         print('Found {} round-way flights from {}. Saving...'.format(len(self.price_info), self.config['placeFrom']))
         update_time = int(time.time())
         with open(self.price_log_file, 'a+', encoding='utf-8') as f:
@@ -172,7 +173,8 @@ class FlightAlert(object):
                     for arr_date, price in dates.items():
                         try:
                             city_to = self.code2city[place_to]
-                            f.write(f'{city_to},{dep_date},{arr_date},{price},{update_time}\n')
+                            iata_code = self.city2code.get(city_to, '')  # 获取城市对应的IATA代码
+                            f.write(f'{city_to},{dep_date},{arr_date},{price},{update_time},{iata_code}\n')
                         except KeyError:
                             logger.error(f'No such city {place_to} found.')
 

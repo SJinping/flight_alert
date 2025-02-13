@@ -32,6 +32,11 @@ window._AMapSecurityConfig = {
   securityJsCode: process.env.REACT_APP_AMAP_SECURITY_CODE
 };
 
+// 在组件外部添加 URL 生成函数
+const generateBookingUrl = (iataCode, depDate, retDate) => {
+  return `https://flights.ctrip.com/online/list/round-szx-${iataCode}?_=1&depdate=${depDate}_${retDate}`;
+};
+
 const FlightPriceTable = () => {
   const [selectedCityFlights, setSelectedCityFlights] = useState([]);
   const [cityDialogOpen, setCityDialogOpen] = useState(false);
@@ -112,23 +117,23 @@ const FlightPriceTable = () => {
           .split('\n')
           .filter(line => line.trim())
           .map((line, index) => {
-            const [city, depDate, retDate, price, timestamp] = line.split(',');
+            const [city, depDate, retDate, price, timestamp, iataCode] = line.split(',');
             return {
               id: index,
               city,
               depDate: dayjs(depDate).format('YYYY-MM-DD'),
               retDate: dayjs(retDate).format('YYYY-MM-DD'),
               price: Number(price),
-              timestamp: Number(timestamp.trim())
+              timestamp: Number(timestamp.trim()),
+              iataCode: iataCode?.trim() // 保存 IATA 代码但不在界面显示
             };
           });
         
-        setFlights(parsedFlights);
-        setFilteredFlights(parsedFlights);
-        
-        // 提取所有不重复的城市
-        const uniqueCities = [...new Set(parsedFlights.map(f => f.city))];
-        setCities(uniqueCities.sort());
+          setFlights(parsedFlights);
+          setFilteredFlights(parsedFlights);
+          
+          const uniqueCities = [...new Set(parsedFlights.map(f => f.city))];
+          setCities(uniqueCities.sort());
       });
   }, []);
 
@@ -164,6 +169,28 @@ const FlightPriceTable = () => {
         return dayjs(params.value).format('YYYY-MM-DD');
       },
     },
+    {
+      field: 'actions',
+      headerName: '订票',
+      width: 100,
+      sortable: false,
+      renderCell: (params) => {
+        const currentDate = dayjs().format('YYYY-MM-DD');
+        if (params.row.depDate < currentDate) {
+          return null;
+        }
+        const url = generateBookingUrl(params.row.iataCode, params.row.depDate, params.row.retDate);
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer" style={{
+            color: '#1976d2',
+            textDecoration: 'none',
+            '&:hover': { textDecoration: 'underline' }
+          }}>
+            订票
+          </a>
+        );
+      }
+    }
   ];
 
   // 处理日历日期点击
@@ -350,6 +377,8 @@ const [mapError, setMapError] = useState(null);
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
+                          const url = !data.isExpired ? generateBookingUrl(data.iataCode, data.depDate, data.retDate) : null;
+                          
                           return (
                             <div style={{
                               backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -361,7 +390,24 @@ const [mapError, setMapError] = useState(null);
                               <p style={{ 
                                 margin: '0 0 5px', 
                                 color: data.isExpired ? '#9e9e9e' : '#1976d2' 
-                              }}>{`价格: ￥${data.price}`}</p>
+                              }}>
+                                {url ? (
+                                  <a 
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      color: '#1976d2',
+                                      textDecoration: 'none',
+                                      '&:hover': { textDecoration: 'underline' }
+                                    }}
+                                  >
+                                    {`价格: ￥${data.price}`}
+                                  </a>
+                                ) : (
+                                  `价格: ￥${data.price}`
+                                )}
+                              </p>
                               <p style={{ margin: '0 0 5px' }}>{`出发: ${data.depDate}`}</p>
                               <p style={{ margin: '0' }}>{`返程: ${data.retDate}`}</p>
                             </div>
@@ -376,26 +422,34 @@ const [mapError, setMapError] = useState(null);
                       stroke="#1976d2"
                       dot={(props) => {
                         const { cx, cy, payload } = props;
+                        const url = !payload.isExpired ? generateBookingUrl(payload.iataCode, payload.depDate, payload.retDate) : null;
+                        
                         return (
-                          <circle
-                            cx={cx}
-                            cy={cy}
-                            r={4}
-                            fill={payload.isExpired ? '#9e9e9e' : '#1976d2'}
-                            stroke={payload.isExpired ? '#9e9e9e' : '#1976d2'}
-                          />
+                          <g style={{ cursor: url ? 'pointer' : 'default' }} onClick={() => url && window.open(url, '_blank')}>
+                            <circle
+                              cx={cx}
+                              cy={cy}
+                              r={4}
+                              fill={payload.isExpired ? '#9e9e9e' : '#1976d2'}
+                              stroke={payload.isExpired ? '#9e9e9e' : '#1976d2'}
+                            />
+                          </g>
                         );
                       }}
                       activeDot={(props) => {
                         const { cx, cy, payload } = props;
+                        const url = !payload.isExpired ? generateBookingUrl(payload.iataCode, payload.depDate, payload.retDate) : null;
+                        
                         return (
-                          <circle
-                            cx={cx}
-                            cy={cy}
-                            r={6}
-                            fill={payload.isExpired ? '#9e9e9e' : '#1976d2'}
-                            stroke={payload.isExpired ? '#9e9e9e' : '#1976d2'}
-                          />
+                          <g style={{ cursor: url ? 'pointer' : 'default' }} onClick={() => url && window.open(url, '_blank')}>
+                            <circle
+                              cx={cx}
+                              cy={cy}
+                              r={6}
+                              fill={payload.isExpired ? '#9e9e9e' : '#1976d2'}
+                              stroke={payload.isExpired ? '#9e9e9e' : '#1976d2'}
+                            />
+                          </g>
                         );
                       }}
                     />
@@ -542,33 +596,85 @@ const [mapError, setMapError] = useState(null);
       )}
 
 <Dialog open={cityDialogOpen} onClose={() => setCityDialogOpen(false)} maxWidth="md">
-        <DialogTitle>{selectedCityName}航班信息</DialogTitle>
-        <DialogContent>
-          <List>
-            {selectedCityFlights.map((flight, index) => (
-              <ListItem key={index}>
-                <ListItemText
-                  primary={`￥${flight.price}`}
-                  secondary={`出发：${flight.depDate} 返回：${flight.retDate}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </DialogContent>
-      </Dialog>
+  <DialogTitle>{selectedCityName}航班信息</DialogTitle>
+  <DialogContent>
+    <List>
+      {selectedCityFlights.map((flight, index) => {
+        const currentDate = dayjs().format('YYYY-MM-DD');
+        const url = generateBookingUrl(flight.iataCode, flight.depDate, flight.retDate);
+        
+        return (
+          <ListItem 
+            key={index}
+            secondaryAction={
+              flight.depDate >= currentDate && (
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: '#1976d2',
+                    textDecoration: 'none',
+                    marginLeft: '8px',
+                    fontSize: '0.875rem',
+                    '&:hover': {
+                      textDecoration: 'underline'
+                    }
+                  }}
+                >
+                  订票
+                </a>
+              )
+            }
+          >
+            <ListItemText
+              primary={`￥${flight.price}`}
+              secondary={`出发：${flight.depDate} 返回：${flight.retDate}`}
+            />
+          </ListItem>
+        );
+      })}
+    </List>
+  </DialogContent>
+</Dialog>
 
 <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md">
         <DialogTitle>航班信息</DialogTitle>
         <DialogContent>
           <List>
-            {dateFlights.map((flight, index) => (
-              <ListItem key={index}>
-                <ListItemText
-                  primary={`${flight.city} - ￥${flight.price}`}
-                  secondary={`出发：${flight.depDate} 返回：${flight.retDate}`}
-                />
-              </ListItem>
-            ))}
+            {dateFlights.map((flight, index) => {
+              const currentDate = dayjs().format('YYYY-MM-DD');
+              const url = generateBookingUrl(flight.iataCode, flight.depDate, flight.retDate);
+              
+              return (
+                <ListItem key={index}>
+                  <ListItemText
+                    primary={
+                      flight.depDate >= currentDate ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <a 
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: '#1976d2',
+                              textDecoration: 'none',
+                              '&:hover': { textDecoration: 'underline' }
+                            }}
+                          >
+                            {flight.city}
+                          </a>
+                          <span>- ￥{flight.price}</span>
+                        </Box>
+                      ) : (
+                        `${flight.city} - ￥${flight.price}`
+                      )
+                    }
+                    secondary={`出发：${flight.depDate} 返回：${flight.retDate}`}
+                  />
+                </ListItem>
+              );
+            })}
           </List>
         </DialogContent>
       </Dialog>
