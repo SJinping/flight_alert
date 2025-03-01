@@ -24,11 +24,9 @@ Page({
       selectedCity: '',  // 确保初始状态为空，显示全部城市
       sortField: 'price',  // 默认按价格排序
       sortOrder: 'asc',    // 默认升序
-      // 初始化一个空的城市数组，确保包含"全部城市"
       cities: ['全部城市']
     });
     
-    // 恢复之前保存的筛选条件
     this.restoreFilters();
     
     const app = getApp();
@@ -303,7 +301,6 @@ Page({
     // });
   },
 
-  // 添加一个方法来保存筛选条件
   saveFilters() {
     // 将当前筛选条件保存到本地存储
     wx.setStorageSync('flightTableFilters', {
@@ -315,7 +312,6 @@ Page({
     });
   },
 
-  // 添加一个方法来恢复筛选条件
   restoreFilters() {
     const filters = wx.getStorageSync('flightTableFilters');
     if (filters) {

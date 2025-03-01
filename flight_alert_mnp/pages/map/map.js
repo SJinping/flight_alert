@@ -70,7 +70,7 @@ Page({
         icon: 'error'
       });
     }
-  },  // 添加逗号
+  },
 
   async getCityCoordinate(cityName) {
     try {

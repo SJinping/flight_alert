@@ -115,4 +115,4 @@ async function getCityLocation(cityName) {
 module.exports = {
   getFlightData,
   getCityLocation
-}; // 删除多余的花括号，修正导出语句
+};

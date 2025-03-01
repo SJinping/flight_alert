@@ -20,8 +20,8 @@ Page({
     // 修改日历组件的默认配置
     this.setData({
       calendarConfig: {
-        prev: '〈', // 使用更优雅的箭头符号
-        next: '〉'  // 或者可以用 '‹' 和 '›' 
+        prev: '〈',
+        next: '〉'
       }
     })
 
