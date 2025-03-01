@@ -1,0 +1,42 @@
+.container {
+  padding: 20rpx;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.no-data {
+  text-align: center;
+  color: #999;
+  padding: 40rpx;
+}
+
+.city-picker {
+  margin-bottom: 20rpx;
+  background: #fff;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+}
+
+.picker-content {
+  display: flex;
+  align-items: center;
+}
+
+.label {
+  color: #666;
+  margin-right: 20rpx;
+}
+
+.value {
+  color: #1976d2;
+  font-weight: bold;
+}
+
+canvas {
+  width: 100% !important;
+  height: 600rpx !important;
+  background: #fff;
+  border-radius: 8rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+}

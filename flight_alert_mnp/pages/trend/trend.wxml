@@ -1,0 +1,25 @@
+<view class="container">
+  <view wx:if="{{!cities.length}}" class="no-data">
+    暂无数据
+  </view>
+  <view wx:else>
+    <picker 
+      mode="selector" 
+      range="{{cities}}" 
+      value="{{cities.indexOf(currentCity)}}" 
+      bindchange="handleCityChange"
+      class="city-picker"
+    >
+      <view class="picker-content">
+        <text class="label">选择城市：</text>
+        <text class="value">{{currentCity || '请选择'}}</text>
+      </view>
+    </picker>
+
+    <canvas 
+      canvas-id="priceChart"
+      style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+      bindtap="handleTap"
+    ></canvas>
+  </view>
+</view>

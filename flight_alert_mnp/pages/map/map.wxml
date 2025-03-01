@@ -1,0 +1,84 @@
+<view class="map-container">
+  <map 
+    class="map"
+    latitude="34.7533"
+    longitude="113.6667"
+    markers="{{markers}}"
+    include-points="{{includePoints}}"
+    scale="{{mapScale}}"
+    show-location
+    enable-zoom
+    enable-scroll
+    enable-rotate
+    bindmarkertap="markertap"
+    bindlabeltap="markertap"
+    bindcallouttap="markertap"
+    setting="{{mapSetting}}"
+    subkey="{{mapSubKey}}"
+    layer-style="2"
+  >
+    <!-- 使用符号替代图标 -->
+    <cover-view class="map-controls">
+      <cover-view class="control-item" bindtap="handleZoomIn">
+        <cover-view class="control-text">+</cover-view>
+      </cover-view>
+      <cover-view class="control-item" bindtap="handleZoomOut">
+        <cover-view class="control-text">−</cover-view>
+      </cover-view>
+    </cover-view>
+  </map>
+
+  <!-- 城市列表抽屉 -->
+  <view class="city-drawer {{showDrawer ? 'drawer-show' : ''}}">
+    <view class="drawer-header">
+      <text class="drawer-title">航班城市</text>
+      <view class="drawer-toggle" bindtap="toggleDrawer">
+        <text class="toggle-text">{{ showDrawer ? '▼' : '▲' }}</text>
+      </view>
+    </view>
+    <scroll-view class="city-list" scroll-y wx:if="{{showDrawer}}">
+      <view class="city-item" 
+            wx:for="{{markers}}" 
+            wx:key="id"
+            bindtap="focusCity"
+            data-city="{{item}}">
+        <text class="city-name">{{item.title}}</text>
+        <text class="flight-count">{{getCityFlightCount(item.title)}}个航班</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 优化后的城市航班弹窗 -->
+  <view class="city-flights {{showCityFlights ? 'flights-show' : ''}}" wx:if="{{selectedCity}}">
+    <view class="flights-mask" bindtap="closeCityFlights"></view>
+    <view class="flights-content">
+      <view class="flights-header">
+        <view class="header-left">
+          <text class="city-name">{{selectedCity.name}}</text>
+          <text class="flight-count">{{selectedCity.flights.length}}个航班</text>
+        </view>
+        <view class="flights-close" bindtap="closeCityFlights">×</view>
+      </view>
+      
+      <scroll-view class="flights-list" scroll-y enable-flex>
+        <view class="flight-card" wx:for="{{selectedCity.flights}}" wx:key="index">
+          <view class="flight-info">
+            <text class="city">{{selectedCity.name}}</text>
+            <text class="date">{{item.depDate}} - {{item.retDate}}</text>
+            <text class="price">¥{{item.price}}</text>
+          </view>
+          <button 
+            class="book-btn"
+            data-iata-code="{{item.iataCode}}"
+            data-dep-date="{{item.depDate}}"
+            data-ret-date="{{item.retDate}}"
+            data-city="{{selectedCity.name}}"
+            bindtap="handleBook"
+          >
+            预订
+          </button>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

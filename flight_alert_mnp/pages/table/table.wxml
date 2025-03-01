@@ -1,0 +1,128 @@
+<view class="container">
+  <view class="filter-section">
+    <view class="filter-item">
+      <view class="custom-picker" bindtap="toggleCityDropdown" hover-class="button-hover">
+        <view class="picker-content">
+          <text>{{selectedCity || '全部城市'}}</text>
+          <text class="arrow">{{showCityDropdown ? '▲' : '▼'}}</text>
+        </view>
+      </view>
+      
+      <view class="dropdown-menu" wx:if="{{showCityDropdown}}">
+        <view class="dropdown-item {{selectedCity === '' ? 'active' : ''}}" 
+              data-city="" 
+              bindtap="selectCity"
+              hover-class="item-hover">全部城市</view>
+        <view class="dropdown-item {{selectedCity === city ? 'active' : ''}}" 
+              wx:for="{{cities}}" 
+              wx:for-item="city" 
+              wx:key="index"
+              data-city="{{city}}" 
+              bindtap="selectCity"
+              hover-class="item-hover">{{city}}</view>
+      </view>
+    </view>
+    
+    <!-- 隐藏价格筛选部分 -->
+    <!--
+    <view class="filter-item">
+      <input type="number" placeholder="最低价" bindinput="onMinPriceInput" value="{{minPrice}}" />
+    </view>
+    <view class="filter-item">
+      <input type="number" placeholder="最高价" bindinput="onMaxPriceInput" value="{{maxPrice}}" />
+    </view>
+    <view class="filter-item">
+      <button size="mini" bindtap="filterByPrice">筛选</button>
+    </view>
+    -->
+  </view>
+
+  <!-- 隐藏调试信息 -->
+  <view class="debug-info" style="display:none;">
+    <view>下拉菜单状态: {{showCityDropdown ? '显示' : '隐藏'}}</view>
+    <view>当前选择: {{selectedCity || '全部城市'}}</view>
+    <view>城市数量: {{cities.length}}</view>
+  </view>
+
+  <view class="sort-buttons">
+    <view 
+      class="sort-item {{sortField === 'price' ? 'active' : ''}}"
+      data-field="price"
+      bindtap="handleSort"
+    >
+      价格排序
+      <text class="sort-icon">{{sortField === 'price' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}}</text>
+    </view>
+    <view 
+      class="sort-item {{sortField === 'depDate' ? 'active' : ''}}"
+      data-field="depDate"
+      bindtap="handleSort"
+    >
+      日期排序
+      <text class="sort-icon">{{sortField === 'depDate' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}}</text>
+    </view>
+  </view>
+
+  <scroll-view 
+    scroll-y 
+    class="flight-list"
+    bindscrolltolower="onReachBottom"
+    refresher-enabled
+    bindrefresherrefresh="onPullDownRefresh"
+  >
+    <view wx:if="{{!displayedFlights.length}}" class="empty-state">
+      <text>暂无数据</text>
+    </view>
+    
+    <view 
+      wx:for="{{displayedFlights}}" 
+      wx:key="id" 
+      class="flight-item"
+    >
+      <view class="flight-info">
+        <text class="city">{{item.city || '未知城市'}}</text>
+        <text class="date">{{item.depDate || '--'}} - {{item.retDate || '--'}}</text>
+        <text class="price">¥{{item.price || '--'}}</text>
+      </view>
+      <view class="actions">
+        <button 
+          class="book-btn"
+          data-iata-code="{{item.iataCode}}"
+          data-dep-date="{{item.depDate}}"
+          data-ret-date="{{item.retDate}}"
+          bindtap="handleBook"
+        >
+          预订航班
+        </button>
+      </view>
+    </view>
+
+    <view wx:if="{{isLoading}}" class="loading-state">
+      <text>加载中...</text>
+    </view>
+    
+    <view wx:if="{{!hasMore && displayedFlights.length}}" class="no-more">
+      <text>没有更多数据了</text>
+    </view>
+  </scroll-view>
+
+  <view class="trend-dialog" wx:if="{{showTrend}}">
+    <view class="trend-mask" bindtap="closeTrend"></view>
+    <view class="trend-content">
+      <view class="trend-header">
+        <text>{{selectedFlightTrend.city}}价格走势</text>
+        <icon type="clear" size="20" bindtap="closeTrend"></icon>
+      </view>
+      <view class="trend-body">
+        <view 
+          wx:for="{{selectedFlightTrend.data}}" 
+          wx:key="timestamp"
+          class="trend-item"
+        >
+          <text>{{item.depDate}}</text>
+          <text>¥{{item.price}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

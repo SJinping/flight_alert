@@ -1,0 +1,61 @@
+<view class="calendar-container">
+  <!-- 原有的月份导航部分 -->
+  <view class="calendar-header">
+    <!-- 这里应该是原有的月份导航，我们只需要美化它的样式 -->
+  </view>
+  
+  <!-- 日历视图 -->
+  <view class="calendar">
+    <calendar 
+      selected="{{selectedDate}}"
+      spot="{{hasFlightsDates}}"
+      bindselect="handleDateSelect"
+      spotColor="#1976d2"
+      config="{{calendarConfig}}"
+    />
+  </view>
+
+  <!-- 优化后的弹窗 -->
+  <view class="popup" wx:if="{{dialogVisible}}">
+    <view class="popup-mask" bindtap="closeDialog"></view>
+    <view class="popup-content">
+      <view class="popup-header">
+        <text class="popup-title">{{selectedDate}} 航班信息</text>
+        <view class="popup-close" bindtap="closeDialog">×</view>
+      </view>
+      
+      <scroll-view class="popup-body" scroll-y>
+        <view class="flight-list">
+          <view class="flight-card" wx:for="{{dateFlights}}" wx:key="id">
+            <view class="flight-main">
+              <view class="flight-city">{{item.city}}</view>
+              <view class="flight-price">¥{{item.price}}</view>
+            </view>
+            
+            <view class="flight-dates">
+              <view class="date-item">
+                <text class="date-label">去程</text>
+                <text class="date-value">{{item.depDate}}</text>
+              </view>
+              <view class="date-item">
+                <text class="date-label">回程</text>
+                <text class="date-value">{{item.retDate}}</text>
+              </view>
+            </view>
+            
+            <button 
+              class="book-btn"
+              data-iata-code="{{item.iataCode}}"
+              data-dep-date="{{item.depDate}}"
+              data-ret-date="{{item.retDate}}"
+              data-city="{{item.city}}"
+              bindtap="handleBook"
+            >
+              预订航班
+            </button>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

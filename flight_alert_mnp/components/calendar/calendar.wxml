@@ -1,0 +1,22 @@
+<view class="calendar">
+  <view class="header">
+    <view class="arrow" bindtap="handlePrevMonth">《</view>
+    <view class="title">{{year}}年{{month}}月</view>
+    <view class="arrow" bindtap="handleNextMonth">》</view>
+  </view>
+  <view class="weekdays">
+    <view class="weekday" wx:for="{{['日', '一', '二', '三', '四', '五', '六']}}" wx:key="*this">{{item}}</view>
+  </view>
+  <view class="days">
+    <view 
+      class="day {{item.hasSpot ? 'has-spot' : ''}} {{item.date === selected ? 'selected' : ''}} {{!item.day ? 'empty' : ''}}"
+      wx:for="{{days}}"
+      wx:key="date"
+      data-date="{{item.date}}"
+      bindtap="handleDayClick"
+    >
+      {{item.day}}
+      <view class="spot" wx:if="{{item.hasSpot}}" style="background-color: {{spotColor}}"></view>
+    </view>
+  </view>
+</view> 

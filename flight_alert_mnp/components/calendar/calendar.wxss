@@ -1,0 +1,103 @@
+.calendar {
+  background: #fff;
+  padding: 20rpx;
+  border-radius: 12rpx;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+}
+
+.arrow {
+  padding: 10rpx 20rpx;
+  color: #666;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  padding: 10rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.weekday {
+  color: #666;
+  font-size: 28rpx;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10rpx;
+  padding: 20rpx 0;
+}
+
+.day {
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  position: relative;
+}
+
+.has-spot {
+  font-weight: bold;
+}
+
+.spot {
+  position: absolute;
+  bottom: 8rpx;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+}
+
+.selected {
+  background: #1976d2;
+  color: #fff;
+  border-radius: 50%;
+}
+
+.empty {
+  color: #ccc;
+}
+
+/* 修改日历组件内部的箭头样式 */
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20rpx 0;
+}
+
+.calendar-header text {
+  width: 70rpx;
+  height: 70rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1976d2;
+  font-size: 32rpx;
+  background: rgba(25, 118, 210, 0.08);
+  border-radius: 50%;
+  transition: all 0.25s ease;
+  margin: 0 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(25, 118, 210, 0.1);
+}
+
+.calendar-header text:active {
+  background: rgba(25, 118, 210, 0.2);
+  transform: scale(0.92);
+}
+
+/* 保留组件其他样式 */ 
