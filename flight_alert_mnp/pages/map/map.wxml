@@ -15,7 +15,6 @@
     bindcallouttap="markertap"
     setting="{{mapSetting}}"
     subkey="{{mapSubKey}}"
-    layer-style="2"
   >
     <!-- 使用符号替代图标 -->
     <cover-view class="map-controls">
