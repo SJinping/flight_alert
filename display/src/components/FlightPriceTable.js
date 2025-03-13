@@ -342,19 +342,31 @@ const [mapError, setMapError] = useState(null);
         <Paper sx={{ height: 600, width: '100%', p: 2, overflow: 'auto' }}>
           {cities.map(city => {
             const currentDate = dayjs().format('YYYY-MM-DD');
-            const cityFlights = flights
+            
+            // 获取城市的所有航班记录并排序
+            const allCityFlights = flights
               .filter(f => f.city === city)
-              .sort((a, b) => a.timestamp - b.timestamp)
+              .sort((a, b) => b.timestamp - a.timestamp) // 按时间戳降序排序（最新的在前）
               .map(flight => ({
                 ...flight,
                 date: dayjs(flight.timestamp*1000).format('MM-DD HH:mm'),
                 isExpired: flight.depDate < currentDate
               }));
+            
+            // 只保留最近的100条记录
+            const cityFlights = allCityFlights.slice(0, 100)
+              .sort((a, b) => a.timestamp - b.timestamp); // 再按时间升序排序用于图表显示
+            
+            // 检查是否有未过期的航班
+            const hasValidFlights = cityFlights.some(flight => !flight.isExpired);
+            
+            // 跳过没有有效航班的城市
+            if (!hasValidFlights) return null;
     
             return (
               <Box key={city} sx={{ mb: 4 }}>
                 <Typography variant="h6" gutterBottom>
-                  {city}
+                  {city} (显示最近100条记录)
                 </Typography>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={cityFlights}>

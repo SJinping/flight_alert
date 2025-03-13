@@ -46,9 +46,12 @@ Page({
       const systemInfo = wx.getSystemInfoSync()
       const canvasWidth = systemInfo.windowWidth - 40
       
+      // 获取当前日期
+      const currentDate = this.formatDate(new Date())
+      
       // 按城市分组并处理航班数据
       const cityFlights = {}
-      const currentDate = this.formatDate(new Date())
+      const validCities = [] // 存储有效航班的城市
       
       cities.forEach(city => {
         const cityData = flights.filter(f => f.city === city)
@@ -67,25 +70,38 @@ Page({
             }
           })
           
-          cityFlights[city] = Object.values(flightMap)
+          // 转换为数组并排序
+          const processedFlights = Object.values(flightMap)
             .sort((a, b) => a.timestamp - b.timestamp)
+          
+          // 检查是否有未过期的航班
+          const hasValidFlights = processedFlights.some(flight => !flight.isExpired)
+          
+          if (hasValidFlights) {
+            cityFlights[city] = processedFlights
+            validCities.push(city) // 只添加有有效航班的城市
+          }
         }
       })
 
       console.log('processed city flights:', cityFlights)
+      console.log('valid cities:', validCities)
 
       this.setData({
-        cities,
+        cities: validCities, // 只使用有有效航班的城市
         cityFlights,
-        currentCity: cities[0] || '',
+        currentCity: validCities.length > 0 ? validCities[0] : '',
         canvasWidth
       }, () => {
         console.log('After setData:', this.data) // 添加日志
-        if (cities.length > 0) {
+        if (validCities.length > 0) {
           wx.nextTick(() => {
             console.log('Drawing chart...') // 添加日志
             this.drawChart()
           })
+        } else {
+          console.log('No valid cities with future flights')
+          // 可以在这里添加无数据提示
         }
       })
     } catch (error) {
